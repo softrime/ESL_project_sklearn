@@ -1,3 +1,5 @@
+import sys
+
 import random
 import numpy as np 
 import codecs
@@ -7,8 +9,8 @@ import matplotlib.pyplot as plt
 def CV(X_train, y_train, fold=5, test=False):
   assert(X_train.shape[0]==y_train.shape[0]==50000)
   if test==True:
-    X_train = X_train[:500]
-    y_train = y_train[:500]
+    X_train = X_train[:1000]
+    y_train = y_train[:1000]
   X_train = np.reshape(X_train,(X_train.shape[0],-1))
   y_train = np.reshape(y_train,(y_train.shape[0],-1))
   x_batch_list = np.vsplit(X_train, 5)
@@ -34,9 +36,9 @@ def do_KNN(x_train, y_train, x_test, n_neighbors=5):
 
   
 
-def do_SVM(x_train, y_train, x_test):
+def do_SVM(x_train, y_train, x_test, C=500, kernel='rbf'):
   from sklearn.svm import SVC
-  svm_model = SVC(probability=True, C=500)
+  svm_model = SVC(probability=True, C=C, kernel=kernel)
   svm_model.fit(x_train, y_train)
   for i in range(x_test.shape[0]):
       #print i,x_test[i]
@@ -44,35 +46,37 @@ def do_SVM(x_train, y_train, x_test):
       #print y_test_pred;raw_input()
   return y_test_pred
 
+if len(sys.argv) < 3:
+  print "need at least 2 parameters"
+  exit(1)
 
+model = sys.argv[1] 
+if len(sys.argv) == 4:
+  param1 = sys.argv[2]
+  param2 = sys.argv[3]
+else:
+  param1 = sys.argv[2]
 
-# This is a bit of magic to make matplotlib figures appear inline in the notebook
-# rather than in a new window.
-
-#%matplotlib inline
-plt.rcParams['figure.figsize'] = (10.0, 8.0) # set default size of plots
-plt.rcParams['image.interpolation'] = 'nearest'
-plt.rcParams['image.cmap'] = 'gray'
-
-# Some more magic so that the notebook will reload external python modules;
-# see http://stackoverflow.com/questions/1907993/autoreload-of-modules-in-ipython
-#%load_ext autoreload
-#%autoreload 2
+if len(sys.argv) == 4:
+  print "========== Model: %s | PARAM1: %s | PARAM2: %s ==========" % (model, str(param1), str(param2))
+else:
+  print "========== Model: %s | PARAM1: %s ==========" % (model, str(param1))
 
 cifar10_dir = '../cifar-10-batches-py'
 X_train, y_train, X_test, y_test = load_CIFAR10(cifar10_dir)
 # Cross Validation
-x_train_folds, y_train_folds = CV(X_train, y_train, test=False)
+x_train_folds, y_train_folds = CV(X_train, y_train, test=True)
 
-C = 100
+if model == 'SVM':
+  output_file = "result/SVM_C-%f_kernel-%s.result"% (float(param2), param1)
+elif model == 'KNN':
+  output_file = "result/KNN_k-%f.result"% float(param1)
+elif model == 'LR':
+  output_file = "result/LR_C-%f.result"% float(param1)
+else:
+  print "unexpected model : %s" % model
+  exit(1)
 
-n_neighbors = 3
-
-svm_C = 10
-kernel = 'rbf'
-
-#output_file = "result/SVM_C-%f_kernel-%s.result"% (svm_C, kernel)
-output_file = "result/KNN_k-%f.result"% n_neighbors
 fin = codecs.open(output_file, 'w')
 for i in range(5):
   print "Cross Validation: %d" % i
@@ -96,10 +100,16 @@ for i in range(5):
         exit(1)
   print ('x_train : ',x_train.shape, 'y_train : ', y_train.shape, 'x_test : ',x_test.shape);#raw_input()
 
-  
-  #y_test_pred = do_LogisticRegression(x_train, y_train, x_test, C=C)
-  y_test_pred = do_KNN(x_train, y_train, x_test, n_neighbors) 
-  #y_test_pred = do_SVM(x_train, y_train, x_test)
+  if model == 'LR':
+    y_test_pred = do_LogisticRegression(x_train, y_train, x_test, C=float(param1))
+  elif model == 'KNN':
+    y_test_pred = do_KNN(x_train, y_train, x_test, int(param1))
+  elif model == 'SVM':
+    y_test_pred = do_SVM(x_train, y_train, x_test, float(param2), kernel=param1)
+  else:
+    print "unexpected model : %s" % model
+    exit(1)
+
   num_correct = np.sum(y_test_pred == y_test)
   accuracy = float(num_correct) / len(y_test)
   fin.write('Got %d / %d correct => accuracy: %f \n' % (num_correct, len(y_test), accuracy))
