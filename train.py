@@ -55,7 +55,7 @@ plt.rcParams['image.cmap'] = 'gray'
 cifar10_dir = '../cifar-10-batches-py'
 X_train, y_train, X_test, y_test = load_CIFAR10(cifar10_dir)
 # Cross Validation
-x_train_folds, y_train_folds = CV(X_train, y_train, test=True)
+x_train_folds, y_train_folds = CV(X_train, y_train, test=False)
 
 C = 1.0
 output_file = "result/LR_C-%f.result"% C
