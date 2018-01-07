@@ -24,7 +24,14 @@ def do_LogisticRegression(x_train, y_train, x_test, C):
   y_test_pred = lr.predict(x_test)
   return y_test_pred
 
-#def do_KNN(x_train, y_train, x_test):
+def do_KNN(x_train, y_train, x_test, n_neighbors=5):
+  from sklearn.neighbors import KNeighborsClassifier
+  knn_model = KNeighborsClassifier(n_neighbors=n_neighbors)
+  knn_model.fit(x_train, y_train)
+  y_test_pred = knn_model.predict(x_test)
+  #print y_test_pred, y_test_pred.shape;raw_input()
+  return y_test_pred
+
   
 
 def do_SVM(x_train, y_train, x_test):
@@ -58,7 +65,10 @@ X_train, y_train, X_test, y_test = load_CIFAR10(cifar10_dir)
 x_train_folds, y_train_folds = CV(X_train, y_train, test=False)
 
 C = 1.0
-output_file = "result/LR_C-%f.result"% C
+n_neighbors = 5
+
+#output_file = "result/LR_C-%f.result"% C
+output_file = "result/KNN_k-%f.result"% n_neighbors
 fin = codecs.open(output_file, 'w')
 for i in range(5):
   print "Cross Validation: %d" % i
@@ -83,7 +93,8 @@ for i in range(5):
   print ('x_train : ',x_train.shape, 'y_train : ', y_train.shape, 'x_test : ',x_test.shape);#raw_input()
 
   
-  y_test_pred = do_LogisticRegression(x_train, y_train, x_test, C=C)
+  #y_test_pred = do_LogisticRegression(x_train, y_train, x_test, C=C)
+  y_test_pred = do_KNN(x_train, y_train, x_test, n_neighbors) 
   num_correct = np.sum(y_test_pred == y_test)
   accuracy = float(num_correct) / len(y_test)
   fin.write('Got %d / %d correct => accuracy: %f \n' % (num_correct, len(y_test), accuracy))
