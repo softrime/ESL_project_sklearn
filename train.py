@@ -64,10 +64,14 @@ X_train, y_train, X_test, y_test = load_CIFAR10(cifar10_dir)
 # Cross Validation
 x_train_folds, y_train_folds = CV(X_train, y_train, test=False)
 
-C = 1.0
-n_neighbors = 5
+C = 100
 
-#output_file = "result/LR_C-%f.result"% C
+n_neighbors = 3
+
+svm_C = 10
+kernel = 'rbf'
+
+#output_file = "result/SVM_C-%f_kernel-%s.result"% (svm_C, kernel)
 output_file = "result/KNN_k-%f.result"% n_neighbors
 fin = codecs.open(output_file, 'w')
 for i in range(5):
@@ -95,11 +99,11 @@ for i in range(5):
   
   #y_test_pred = do_LogisticRegression(x_train, y_train, x_test, C=C)
   y_test_pred = do_KNN(x_train, y_train, x_test, n_neighbors) 
+  #y_test_pred = do_SVM(x_train, y_train, x_test)
   num_correct = np.sum(y_test_pred == y_test)
   accuracy = float(num_correct) / len(y_test)
   fin.write('Got %d / %d correct => accuracy: %f \n' % (num_correct, len(y_test), accuracy))
 fin.close()
-#y_test_pred = do_SVM(x_train, y_train, x_test)
 
 
 
